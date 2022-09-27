@@ -1,0 +1,5 @@
+(library
+ (name nanopass_lib)
+ (inline_tests)
+ (libraries sexplib)
+ (preprocess (pps ppx_sexp_conv ppx_inline_test)))
