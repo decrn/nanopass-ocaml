@@ -1,23 +1,25 @@
 open Sexplib.Std
 
+(* Untyped Lambda Calculus (UTLC) *)
 type lc =
   [ `Var of string
   | `App of lc * lc
   | `Abs of string * lc ] [@@deriving sexp]
 
-(* Polymorphic variant of lc with extra constructor *)
+(* Using OCaml's 'polymorphic variants' feature, we can express
+   UTLC+Let: a version of the UTLC with `let` abstraction *)
 type lc_let = 
   [ lc
   | `Let of string * lc_let * lc_let ] [@@deriving sexp]
 
-  
-(* nanopass let desugaring *)
+(* We can now define a compiler pass that desugars LC+Let programs into regular UTLC *)
+(* let A = B in C ~> (\A.C) B *)
+(* e.g. let id = (\x.x) in (id 5)
+    ~>  (\id.(id 5)) (\x.x) *)
 let rec lc_of_lc_let = function
   | #lc as lc -> lc
   | `Let (x, e1, e2) -> `App (`Abs (x, lc_of_lc_let e2), lc_of_lc_let e1)
 
-
-  (* *)
 let rec eval_lc (e : lc) (s : (string * lc) list) : lc =
   match e with
   | `Var x -> List.assoc x s
