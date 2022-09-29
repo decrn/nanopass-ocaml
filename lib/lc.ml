@@ -9,7 +9,7 @@ type lc =
 (* Using OCaml's 'polymorphic variants' feature, we can express
    UTLC+Let: a version of the UTLC with `let` abstraction *)
 type lc_let = 
-  [ lc
+  [ lc (* inherit all the constructors from lc *)
   | `Let of string * lc_let * lc_let ] [@@deriving sexp]
 
 (* We can now define a compiler pass that desugars LC+Let programs into regular UTLC *)
@@ -17,7 +17,7 @@ type lc_let =
 (* e.g. let id = (\x.x) in (id 5)
     ~>  (\id.(id 5)) (\x.x) *)
 let rec lc_of_lc_let = function
-  | #lc as lc -> lc
+  | #lc as lc -> lc (* keep any lc constructors unchanged *)
   | `Let (x, e1, e2) -> `App (`Abs (x, lc_of_lc_let e2), lc_of_lc_let e1)
 
 let rec eval_lc (e : lc) (s : (string * lc) list) : lc =
